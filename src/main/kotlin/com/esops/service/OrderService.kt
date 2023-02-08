@@ -7,7 +7,6 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import java.math.BigInteger
 import java.util.PriorityQueue
-import java.util.*
 
 @Singleton
 class OrderService {
@@ -21,7 +20,6 @@ class OrderService {
     @Inject
     lateinit var platformFeesConfiguration: PlatformFeesConfiguration
 
-    private var orders = HashMap<String, HashMap<Long, Order>>()
     private var buyOrderQueue = PriorityQueue(BuyOrderComparator)
     private var sellOrderQueue = PriorityQueue(SellOrderComparator)
     private var orderIDCounter: Long = 0
@@ -29,7 +27,6 @@ class OrderService {
     fun placeOrder(username: String, addOrderRequestBody: AddOrderRequestBody): Order {
         orderIDCounter++
         val user = this.userService.getUser(username)
-        if (orders[username].isNullOrEmpty()) initializeOrderMapForUser(username)
         return when (OrderType.valueOf(addOrderRequestBody.type!!)) {
             OrderType.BUY -> placeBuyOrder(addOrderRequestBody, user)
             OrderType.SELL -> placeSellOrder(addOrderRequestBody, user)
@@ -53,7 +50,7 @@ class OrderService {
             EsopType.NON_PERFORMANCE,
             remainingQuantity = quantity
         )
-        orders[username]?.set(orderIDCounter, order)
+        userService.getUser(username).addNewOrder(order)
         buyOrderQueue.add(order)
         user.moveWalletMoneyFromFreeToLockedState(orderValue)
         executeBuyOrder(order)
@@ -109,7 +106,7 @@ class OrderService {
             esopType,
             remainingQuantity = quantity
         )
-        orders[username]?.set(orderIDCounter, order)
+        userService.getUser(username).addNewOrder(order)
         sellOrderQueue.add(order)
         user.moveInventoryFromFreeToLockedState(esopType, quantity)
         executeSellOrder(order)
@@ -182,16 +179,10 @@ class OrderService {
 
     fun orderHistory(username: String): List<Order> {
         userService.testUser(username)
-        if (orders[username].isNullOrEmpty()) initializeOrderMapForUser(username)
-        return orders[username]!!.values.toList()
-    }
-
-    private fun initializeOrderMapForUser(username: String) {
-        orders[username] = HashMap()
+        return userService.getUser(username).getAllOrders()
     }
 
     fun clearOrders() {
-        orders = HashMap()
         orderIDCounter = 0
         buyOrderQueue.clear()
         sellOrderQueue.clear()
