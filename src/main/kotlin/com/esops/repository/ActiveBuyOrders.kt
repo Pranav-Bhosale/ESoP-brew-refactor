@@ -1,9 +1,9 @@
 package com.esops.repository
 
-import com.esops.entity.BuyOrderComparator
 import com.esops.entity.Order
 import jakarta.inject.Singleton
 import java.util.*
+import kotlin.Comparator
 
 @Singleton
 class ActiveBuyOrders {
@@ -14,5 +14,15 @@ class ActiveBuyOrders {
 
     fun getBestBuyOrder(): Order? {
         return buyOrderQueue.poll()
+    }
+}
+
+
+object BuyOrderComparator: Comparator<Order> {
+    override fun compare(o1: Order, o2: Order): Int {
+        val priceComparison = o2.price.compareTo(o1.price)
+        val timeComparison = o1.createdAt.compareTo(o2.createdAt)
+        if (priceComparison != 0) return priceComparison
+        return timeComparison
     }
 }
