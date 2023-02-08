@@ -82,13 +82,6 @@ data class User(
         return unvestedInventoryResponseList
     }
 
-    private fun addHoursToDate(date: Date?, hours: Int): Date? {
-        val calendar = Calendar.getInstance()
-        calendar.time = date
-        calendar.add(Calendar.HOUR_OF_DAY, hours)
-        return calendar.time
-    }
-
     private fun addSecsToDate(date: Date?, secs: Int): Date? {
         val calendar = Calendar.getInstance()
         calendar.time = date
