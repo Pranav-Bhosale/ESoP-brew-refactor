@@ -3,6 +3,7 @@ package com.esops.service
 import com.esops.configuration.PlatformFeesConfiguration
 import com.esops.entity.*
 import com.esops.model.AddOrderRequestBody
+import com.esops.repository.ActiveBuyOrders
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import java.math.BigInteger
@@ -20,7 +21,8 @@ class OrderService {
     @Inject
     lateinit var platformFeesConfiguration: PlatformFeesConfiguration
 
-    private var buyOrderQueue = PriorityQueue(BuyOrderComparator)
+    @Inject
+    private lateinit var buyOrderQueue: ActiveBuyOrders
     private var sellOrderQueue = PriorityQueue(SellOrderComparator)
     private var orderIDCounter: Long = 0
 
@@ -51,7 +53,7 @@ class OrderService {
             remainingQuantity = quantity
         )
         userService.getUser(username).addNewOrder(order)
-        buyOrderQueue.add(order)
+        buyOrderQueue.addOrder(order)
         user.moveWalletMoneyFromFreeToLockedState(orderValue)
         executeBuyOrder(order)
         return order
@@ -115,22 +117,14 @@ class OrderService {
 
     private fun executeSellOrder(sellOrder: Order) {
         val sellOrderUser = userService.getUser(sellOrder.username)
-        val clone = PriorityQueue(buyOrderQueue)
-        for (buyOrder in clone) {
-            val buyOrderUser = userService.getUser(buyOrder.username)
-            applyOrderMatchingAlgorithm(buyOrder, sellOrder, buyOrderUser, sellOrderUser)
-            if(sellOrder.remainingQuantity == BigInteger("0")) {
-                break
-            }
+
+        while(sellOrder.remainingQuantity > BigInteger.ZERO) {
+            val bestBuyOrder = buyOrderQueue.getBestBuyOrder() ?: return
+            val buyOrderUser = userService.getUser(bestBuyOrder.username)
+            applyOrderMatchingAlgorithm(bestBuyOrder, sellOrder, buyOrderUser, sellOrderUser)
         }
-        buyOrderQueue = clone
-        cleanQueue()
     }
 
-    private fun cleanQueue() {
-        buyOrderQueue.removeIf { it.remainingQuantity == BigInteger("0") }
-        sellOrderQueue.removeIf { it.remainingQuantity == BigInteger("0") }
-    }
 
     private fun applyOrderMatchingAlgorithm(
         buyOrder: Order,
@@ -184,8 +178,8 @@ class OrderService {
 
     fun clearOrders() {
         orderIDCounter = 0
-        buyOrderQueue.clear()
+        while (true)
+            buyOrderQueue.getBestBuyOrder() ?: break
         sellOrderQueue.clear()
     }
-
 }
