@@ -17,8 +17,7 @@ class ActiveNonPerformanceSellOrdersTest{
 
     @AfterEach
     fun tearDown() {
-        while (true)
-            activeNonPerformanceSellOrders.getBestSellOrder() ?: break
+        activeNonPerformanceSellOrders.clear()
     }
 
     @Test

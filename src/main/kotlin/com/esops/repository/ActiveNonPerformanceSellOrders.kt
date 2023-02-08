@@ -15,6 +15,10 @@ class ActiveNonPerformanceSellOrders {
     fun getBestSellOrder(): Order? {
         return sellOrderQueue.poll()
     }
+
+    fun clear(){
+        sellOrderQueue.clear()
+    }
 }
 
 
