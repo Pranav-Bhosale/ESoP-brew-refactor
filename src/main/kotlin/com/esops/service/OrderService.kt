@@ -26,15 +26,12 @@ class OrderService {
     private lateinit var buyOrderQueue: ActiveBuyOrders
 
     @Inject
-    private lateinit var activeNonPerformanceSellOrders : ActiveNonPerformanceSellOrders
+    private lateinit var activeNonPerformanceSellOrders: ActiveNonPerformanceSellOrders
 
     @Inject
     private lateinit var activePerformanceSellOrders: ActivePerformanceSellOrders
 
-    private var orderIDCounter: Long = 0
-
     fun placeOrder(username: String, addOrderRequestBody: AddOrderRequestBody): Order {
-        orderIDCounter++
         val user = this.userService.getUser(username)
         return when (OrderType.valueOf(addOrderRequestBody.type!!)) {
             OrderType.BUY -> placeBuyOrder(addOrderRequestBody, user)
@@ -51,7 +48,6 @@ class OrderService {
         val quantity = BigInteger(addOrderRequestBody.quantity!!)
         val orderValue = price.multiply(quantity)
         val order = Order(
-            orderIDCounter.toString(),
             username,
             OrderType.BUY,
             quantity,
@@ -69,12 +65,12 @@ class OrderService {
     private fun executeBuyOrder(buyOrder: Order) {
         val buyOrderUser = userService.getUser(buyOrder.username)
 
-        while(buyOrder.remainingQuantity > BigInteger.ZERO){
+        while (buyOrder.remainingQuantity > BigInteger.ZERO) {
             val bestPerformanceSellOrder = activePerformanceSellOrders.getBestSellOrder(buyOrder) ?: break
             val sellOrderUser = userService.getUser(bestPerformanceSellOrder.username)
             applyOrderMatchingAlgorithm(buyOrder, bestPerformanceSellOrder, buyOrderUser, sellOrderUser)
         }
-        while (buyOrder.remainingQuantity > BigInteger.ZERO){
+        while (buyOrder.remainingQuantity > BigInteger.ZERO) {
             val bestNonPerformanceSellOrder = activeNonPerformanceSellOrders.getBestSellOrder() ?: break
             val sellOrderUser = userService.getUser(bestNonPerformanceSellOrder.username)
             applyOrderMatchingAlgorithm(buyOrder, bestNonPerformanceSellOrder, buyOrderUser, sellOrderUser)
@@ -109,7 +105,6 @@ class OrderService {
         val price = BigInteger(addOrderRequestBody.price!!)
         val quantity = BigInteger(addOrderRequestBody.quantity!!)
         val order = Order(
-            orderIDCounter.toString(),
             username,
             OrderType.SELL,
             quantity,
@@ -127,7 +122,7 @@ class OrderService {
     private fun executeSellOrder(sellOrder: Order) {
         val sellOrderUser = userService.getUser(sellOrder.username)
 
-        while(sellOrder.remainingQuantity > BigInteger.ZERO) {
+        while (sellOrder.remainingQuantity > BigInteger.ZERO) {
             val bestBuyOrder = buyOrderQueue.getBestBuyOrder() ?: return
             val buyOrderUser = userService.getUser(bestBuyOrder.username)
             applyOrderMatchingAlgorithm(bestBuyOrder, sellOrder, buyOrderUser, sellOrderUser)
@@ -143,8 +138,9 @@ class OrderService {
     ) {
         if (buyOrder.price >= sellOrder.price) {
             val minPrice = sellOrder.price
-            val minQuantity = if (buyOrder.remainingQuantity < sellOrder.remainingQuantity) buyOrder.remainingQuantity else sellOrder.remainingQuantity
-            if(minQuantity <= BigInteger.ZERO) return
+            val minQuantity =
+                if (buyOrder.remainingQuantity < sellOrder.remainingQuantity) buyOrder.remainingQuantity else sellOrder.remainingQuantity
+            if (minQuantity <= BigInteger.ZERO) return
             updateFilledFieldDuringMatching(sellOrder, buyOrder, minQuantity, minPrice)
             updateRemainingQuantityInOrderDuringMatching(sellOrder, minQuantity, buyOrder)
             val buyOrderValue = buyOrder.price.multiply(minQuantity)
@@ -183,9 +179,5 @@ class OrderService {
     fun orderHistory(username: String): List<Order> {
         userService.testUser(username)
         return userService.getUser(username).getAllOrders()
-    }
-
-    fun clearOrderID(){
-        orderIDCounter = 0
     }
 }

@@ -38,8 +38,7 @@ class OrderHistoryTest {
     }
 
     @BeforeEach
-    fun `clear order`(){
-        orderService.clearOrderID()
+    fun `clear order`() {
         buyOrders.clear()
         nonPerformanceSellOrders.clear()
     }
