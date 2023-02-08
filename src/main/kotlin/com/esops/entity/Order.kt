@@ -14,7 +14,7 @@ data class Order(
     val price: BigInteger,
     val esopType: EsopType,
     val filled: MutableList<Filled> = mutableListOf(),
-    var remainingQuantity: BigInteger,
+    var remainingQuantity: BigInteger = quantity,
     val createdAt: Long = System.currentTimeMillis()
 )
 
