@@ -51,7 +51,6 @@ class OrderService {
             quantity,
             price,
             EsopType.NON_PERFORMANCE,
-            status = OrderStatus.PLACED,
             remainingQuantity = quantity
         )
         orders[username]?.set(orderIDCounter, order)
@@ -108,7 +107,6 @@ class OrderService {
             quantity,
             price,
             esopType,
-            status = OrderStatus.PLACED,
             remainingQuantity = quantity
         )
         orders[username]?.set(orderIDCounter, order)
@@ -178,28 +176,6 @@ class OrderService {
                     sellOrderUser.wallet.free = sellOrderUser.wallet.free.add(sellOrderValue).subtract(platformFees)
                     platformService.addPlatformFees(platformFees)
                 }
-            }
-            updateOrderStatusDuringMatching(buyOrder, sellOrder)
-        }
-    }
-
-    private fun updateOrderStatusDuringMatching(buyOrder: Order, sellOrder: Order) {
-        when (buyOrder.remainingQuantity) {
-            BigInteger("0") -> {
-                buyOrder.status = OrderStatus.COMPLETE
-            }
-
-            else -> {
-                buyOrder.status = OrderStatus.PARTIAL
-            }
-        }
-        when (sellOrder.remainingQuantity) {
-            BigInteger("0") -> {
-                sellOrder.status = OrderStatus.COMPLETE
-            }
-
-            else -> {
-                sellOrder.status = OrderStatus.PARTIAL
             }
         }
     }

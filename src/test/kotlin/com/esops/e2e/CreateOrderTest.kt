@@ -1,7 +1,6 @@
 package com.esops.e2e
 
 import com.esops.entity.EsopType
-import com.esops.entity.OrderStatus
 import com.esops.entity.OrderType
 import com.esops.service.OrderService
 import com.esops.service.UserService
@@ -57,7 +56,6 @@ class CreateOrderTest {
                 "quantity", equalTo(10),
                 "price", equalTo(50),
                 "type", equalTo(OrderType.BUY.toString()),
-                "status", equalTo(OrderStatus.PLACED.toString())
             )
     }
 
@@ -106,7 +104,6 @@ class CreateOrderTest {
                 "quantity", equalTo(10),
                 "price", equalTo(50),
                 "type", equalTo(OrderType.SELL.toString()),
-                "status", equalTo(OrderStatus.PLACED.toString())
             )
     }
     @Test
@@ -143,7 +140,6 @@ class CreateOrderTest {
                 "quantity", equalTo(10),
                 "price", equalTo(50),
                 "type", equalTo(OrderType.SELL.toString()),
-                "status", equalTo(OrderStatus.COMPLETE.toString())
             )
     }
 }
