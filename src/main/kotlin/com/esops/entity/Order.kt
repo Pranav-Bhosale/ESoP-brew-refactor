@@ -23,16 +23,3 @@ data class Filled(
     val quantity: BigInteger = BigInteger("0"),
     val price: BigInteger = BigInteger("0")
 )
-
-class SellOrderComparator {
-    companion object : Comparator<Order> {
-        override fun compare(o1: Order, o2: Order): Int {
-            val esopTypeComparison = o2.esopType.compareTo(o1.esopType)
-            val priceComparison = o1.price.compareTo(o2.price)
-            val timeComparison = o1.createdAt.compareTo(o2.createdAt)
-            if (esopTypeComparison != 0) return esopTypeComparison
-            if (priceComparison != 0) return priceComparison
-            return timeComparison
-        }
-    }
-}
