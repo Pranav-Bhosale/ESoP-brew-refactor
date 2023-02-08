@@ -4,10 +4,10 @@ import com.esops.configuration.PlatformFeesConfiguration
 import com.esops.entity.*
 import com.esops.model.AddOrderRequestBody
 import com.esops.repository.ActiveBuyOrders
+import com.esops.repository.ActiveNonPerformanceSellOrders
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import java.math.BigInteger
-import java.util.PriorityQueue
 
 @Singleton
 class OrderService {
@@ -23,7 +23,10 @@ class OrderService {
 
     @Inject
     private lateinit var buyOrderQueue: ActiveBuyOrders
-    private var sellOrderQueue = PriorityQueue(SellOrderComparator)
+
+    @Inject
+    private lateinit var activeNonPerformanceSellOrders : ActiveNonPerformanceSellOrders
+
     private var orderIDCounter: Long = 0
 
     fun placeOrder(username: String, addOrderRequestBody: AddOrderRequestBody): Order {
@@ -59,17 +62,14 @@ class OrderService {
         return order
     }
 
-    private fun executeBuyOrder(buyOrder: Order) {
-        val buyOrderUser = userService.getUser(buyOrder.username)
-        val clone = PriorityQueue(sellOrderQueue)
-        for (sellOrder in clone) {
-            val sellOrderUser = userService.getUser(sellOrder.username)
-            applyOrderMatchingAlgorithm(buyOrder, sellOrder, buyOrderUser, sellOrderUser)
-            if(buyOrder.remainingQuantity == BigInteger("0")) {
-                break
-            }
+    private fun executeBuyOrder(sellOrder: Order) {
+        val sellOrderUser = userService.getUser(sellOrder.username)
+
+        while(sellOrder.remainingQuantity > BigInteger.ZERO) {
+            val bestBuyOrder = buyOrderQueue.getBestBuyOrder() ?: return
+            val buyOrderUser = userService.getUser(bestBuyOrder.username)
+            applyOrderMatchingAlgorithm(bestBuyOrder, sellOrder, buyOrderUser, sellOrderUser)
         }
-        sellOrderQueue = clone
     }
 
     private fun updateRemainingQuantityInOrderDuringMatching(
@@ -109,7 +109,7 @@ class OrderService {
             remainingQuantity = quantity
         )
         userService.getUser(username).addNewOrder(order)
-        sellOrderQueue.add(order)
+        activeNonPerformanceSellOrders.addOrder(order)
         user.moveInventoryFromFreeToLockedState(esopType, quantity)
         executeSellOrder(order)
         return order
@@ -176,10 +176,7 @@ class OrderService {
         return userService.getUser(username).getAllOrders()
     }
 
-    fun clearOrders() {
+    fun clearOrderID(){
         orderIDCounter = 0
-        while (true)
-            buyOrderQueue.getBestBuyOrder() ?: break
-        sellOrderQueue.clear()
     }
 }
