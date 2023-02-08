@@ -5,6 +5,7 @@ import com.esops.entity.*
 import com.esops.model.AddOrderRequestBody
 import com.esops.repository.ActiveBuyOrders
 import com.esops.repository.ActiveNonPerformanceSellOrders
+import com.esops.repository.ActivePerformanceSellOrders
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import java.math.BigInteger
@@ -26,6 +27,9 @@ class OrderService {
 
     @Inject
     private lateinit var activeNonPerformanceSellOrders : ActiveNonPerformanceSellOrders
+
+    @Inject
+    private lateinit var activePerformanceSellOrders: ActivePerformanceSellOrders
 
     private var orderIDCounter: Long = 0
 
@@ -62,13 +66,18 @@ class OrderService {
         return order
     }
 
-    private fun executeBuyOrder(sellOrder: Order) {
-        val sellOrderUser = userService.getUser(sellOrder.username)
+    private fun executeBuyOrder(buyOrder: Order) {
+        val buyOrderUser = userService.getUser(buyOrder.username)
 
-        while(sellOrder.remainingQuantity > BigInteger.ZERO) {
-            val bestBuyOrder = buyOrderQueue.getBestBuyOrder() ?: return
-            val buyOrderUser = userService.getUser(bestBuyOrder.username)
-            applyOrderMatchingAlgorithm(bestBuyOrder, sellOrder, buyOrderUser, sellOrderUser)
+        while(buyOrder.remainingQuantity > BigInteger.ZERO){
+            val bestPerformanceSellOrder = activePerformanceSellOrders.getBestSellOrder(buyOrder) ?: break
+            val sellOrderUser = userService.getUser(bestPerformanceSellOrder.username)
+            applyOrderMatchingAlgorithm(buyOrder, bestPerformanceSellOrder, buyOrderUser, sellOrderUser)
+        }
+        while (buyOrder.remainingQuantity > BigInteger.ZERO){
+            val bestNonPerformanceSellOrder = activeNonPerformanceSellOrders.getBestSellOrder() ?: break
+            val sellOrderUser = userService.getUser(bestNonPerformanceSellOrder.username)
+            applyOrderMatchingAlgorithm(buyOrder, bestNonPerformanceSellOrder, buyOrderUser, sellOrderUser)
         }
     }
 
