@@ -49,7 +49,7 @@ class ActiveBuyOrdersTest {
     fun `should get buy order that came first if same price`() {
         val firstOrder = Order("1", "jake", OrderType.BUY, BigInteger.ONE, BigInteger("10"), EsopType.NON_PERFORMANCE)
         activeBuyOrders.addOrder(firstOrder)
-        val secondOrder = Order("2", "jake", OrderType.BUY, BigInteger.ONE, BigInteger("5"), EsopType.NON_PERFORMANCE)
+        val secondOrder = Order("2", "jake", OrderType.BUY, BigInteger.ONE, BigInteger("10"), EsopType.NON_PERFORMANCE)
         activeBuyOrders.addOrder(secondOrder)
 
         val bestBuyOrder = activeBuyOrders.getBestBuyOrder()
