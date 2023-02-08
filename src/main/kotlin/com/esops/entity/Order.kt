@@ -6,10 +6,6 @@ enum class OrderType {
     BUY, SELL
 }
 
-enum class OrderStatus {
-    PLACED, PARTIAL, COMPLETE
-}
-
 data class Order(
     val orderId: String,
     val username: String,
@@ -18,7 +14,6 @@ data class Order(
     val price: BigInteger,
     val esopType: EsopType,
     val filled: MutableList<Filled> = mutableListOf(),
-    var status: OrderStatus,
     var remainingQuantity: BigInteger,
     val createdAt: Long = System.currentTimeMillis()
 )
@@ -34,7 +29,7 @@ class BuyOrderComparator {
         override fun compare(o1: Order, o2: Order): Int {
             val priceComparison = o2.price.compareTo(o1.price)
             val timeComparison = o1.createdAt.compareTo(o2.createdAt)
-            if(priceComparison != 0) return priceComparison
+            if (priceComparison != 0) return priceComparison
             return timeComparison
         }
     }
@@ -46,8 +41,8 @@ class SellOrderComparator {
             val esopTypeComparison = o2.esopType.compareTo(o1.esopType)
             val priceComparison = o1.price.compareTo(o2.price)
             val timeComparison = o1.createdAt.compareTo(o2.createdAt)
-            if(esopTypeComparison != 0) return esopTypeComparison
-            if(priceComparison != 0) return priceComparison
+            if (esopTypeComparison != 0) return esopTypeComparison
+            if (priceComparison != 0) return priceComparison
             return timeComparison
         }
     }
