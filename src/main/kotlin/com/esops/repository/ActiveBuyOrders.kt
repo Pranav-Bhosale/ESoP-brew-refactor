@@ -15,6 +15,10 @@ class ActiveBuyOrders {
     fun getBestBuyOrder(): Order? {
         return buyOrderQueue.poll()
     }
+
+    fun clear(){
+        buyOrderQueue.clear()
+    }
 }
 
 

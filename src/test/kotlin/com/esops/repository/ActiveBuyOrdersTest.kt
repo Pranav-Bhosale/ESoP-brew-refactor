@@ -18,8 +18,7 @@ class ActiveBuyOrdersTest {
 
     @AfterEach
     fun tearDown() {
-        while (true)
-            activeBuyOrders.getBestBuyOrder() ?: break
+        activeBuyOrders.clear()
     }
 
     @Test
