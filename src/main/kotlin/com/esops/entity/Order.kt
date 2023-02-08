@@ -7,7 +7,6 @@ enum class OrderType {
 }
 
 data class Order(
-    val orderId: String,
     val username: String,
     val type: OrderType,
     val quantity: BigInteger,
@@ -16,10 +15,20 @@ data class Order(
     val filled: MutableList<Filled> = mutableListOf(),
     var remainingQuantity: BigInteger = quantity,
     val createdAt: Long = System.currentTimeMillis()
-)
+) {
+    val orderId = OrderIdGenerator.generateOrderId()
+}
 
 data class Filled(
-    val orderId: String,
+    val orderId: BigInteger,
     val quantity: BigInteger = BigInteger("0"),
     val price: BigInteger = BigInteger("0")
 )
+
+object OrderIdGenerator {
+    private var orderId = BigInteger.ZERO
+    fun generateOrderId(): BigInteger {
+        orderId += BigInteger.ONE
+        return orderId
+    }
+}

@@ -23,7 +23,7 @@ class CreateOrderTest {
     @Inject
     lateinit var orderService: OrderService
 
-    private val commonUtil =  CommonUtil()
+    private val commonUtil = CommonUtil()
 
     @Inject
     lateinit var buyOrders: ActiveBuyOrders
@@ -35,9 +35,9 @@ class CreateOrderTest {
     fun `clear user`() {
         userService.clearUsers()
     }
+
     @BeforeEach
     fun `clear order`() {
-        orderService.clearOrderID()
         buyOrders.clear()
         nonPerformanceSellOrders.clear()
     }
@@ -61,7 +61,6 @@ class CreateOrderTest {
             .then()
             .statusCode(200)
             .body(
-                "orderId", equalTo("1"),
                 "quantity", equalTo(10),
                 "price", equalTo(50),
                 "type", equalTo(OrderType.BUY.toString()),
@@ -102,19 +101,20 @@ class CreateOrderTest {
             )
         )
         userService.addInventory("john", commonUtil.addInventoryRequestBody(EsopType.PERFORMANCE, "10"))
-        specification.given().body(commonUtil.sellOrderRequest("10", "50", EsopType.PERFORMANCE)).contentType(ContentType.JSON)
+        specification.given().body(commonUtil.sellOrderRequest("10", "50", EsopType.PERFORMANCE))
+            .contentType(ContentType.JSON)
             .`when`()
             .pathParam("userName", "john")
             .post("/user/{userName}/order")
             .then()
             .statusCode(200)
             .body(
-                "orderId", equalTo("1"),
                 "quantity", equalTo(10),
                 "price", equalTo(50),
                 "type", equalTo(OrderType.SELL.toString()),
             )
     }
+
     @Test
     fun `Place and match buy and sell order`(specification: RequestSpecification) {
         userService.addUser(
@@ -138,14 +138,14 @@ class CreateOrderTest {
         userService.addWalletMoney("u1", commonUtil.addWalletMoneyRequestBody("500"))
         userService.addInventory("u2", commonUtil.addInventoryRequestBody(EsopType.PERFORMANCE, "10"))
         orderService.placeOrder("u1", commonUtil.buyOrderRequest("10", "50"))
-        specification.given().body(commonUtil.sellOrderRequest("10", "50", EsopType.PERFORMANCE)).contentType(ContentType.JSON)
+        specification.given().body(commonUtil.sellOrderRequest("10", "50", EsopType.PERFORMANCE))
+            .contentType(ContentType.JSON)
             .`when`()
             .pathParam("userName", "u2")
             .post("/user/{userName}/order")
             .then()
             .statusCode(200)
             .body(
-                "orderId", equalTo("2"),
                 "quantity", equalTo(10),
                 "price", equalTo(50),
                 "type", equalTo(OrderType.SELL.toString()),

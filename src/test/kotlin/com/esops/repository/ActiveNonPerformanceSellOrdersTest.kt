@@ -6,12 +6,13 @@ import com.esops.entity.OrderType
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import jakarta.inject.Inject
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.math.BigInteger
 
 @MicronautTest
-class ActiveNonPerformanceSellOrdersTest{
+class ActiveNonPerformanceSellOrdersTest {
     @Inject
     lateinit var activeNonPerformanceSellOrders: ActiveNonPerformanceSellOrders
 
@@ -22,7 +23,7 @@ class ActiveNonPerformanceSellOrdersTest{
 
     @Test
     fun `should be able to add sell order`() {
-        val order = Order("1", "jake", OrderType.SELL, BigInteger.ONE, BigInteger.ONE, EsopType.NON_PERFORMANCE)
+        val order = Order("jake", OrderType.SELL, BigInteger.ONE, BigInteger.ONE, EsopType.NON_PERFORMANCE)
         activeNonPerformanceSellOrders.addOrder(order)
         val bestSellOrder = activeNonPerformanceSellOrders.getBestSellOrder()
 
@@ -32,10 +33,10 @@ class ActiveNonPerformanceSellOrdersTest{
 
     @Test
     fun `should get sell order with lowest order price`() {
-        val lowPriceOrder = Order("1", "jake", OrderType.BUY, BigInteger.ONE, BigInteger("5"), EsopType.NON_PERFORMANCE)
+        val lowPriceOrder = Order("jake", OrderType.BUY, BigInteger.ONE, BigInteger("5"), EsopType.NON_PERFORMANCE)
         activeNonPerformanceSellOrders.addOrder(lowPriceOrder)
         val highPriceOrder =
-            Order("2", "jake", OrderType.BUY, BigInteger.ONE, BigInteger("10"), EsopType.NON_PERFORMANCE)
+            Order("jake", OrderType.BUY, BigInteger.ONE, BigInteger("10"), EsopType.NON_PERFORMANCE)
         activeNonPerformanceSellOrders.addOrder(highPriceOrder)
 
         val bestSellOrder = activeNonPerformanceSellOrders.getBestSellOrder()
@@ -46,9 +47,9 @@ class ActiveNonPerformanceSellOrdersTest{
 
     @Test
     fun `should get sell order that came first if same price`() {
-        val firstOrder = Order("1", "jake", OrderType.BUY, BigInteger.ONE, BigInteger("10"), EsopType.NON_PERFORMANCE)
+        val firstOrder = Order("jake", OrderType.BUY, BigInteger.ONE, BigInteger("10"), EsopType.NON_PERFORMANCE)
         activeNonPerformanceSellOrders.addOrder(firstOrder)
-        val secondOrder = Order("2", "jake", OrderType.BUY, BigInteger.ONE, BigInteger("10"), EsopType.NON_PERFORMANCE)
+        val secondOrder = Order("jake", OrderType.BUY, BigInteger.ONE, BigInteger("10"), EsopType.NON_PERFORMANCE)
         activeNonPerformanceSellOrders.addOrder(secondOrder)
 
         val bestSellOrder = activeNonPerformanceSellOrders.getBestSellOrder()
