@@ -1,6 +1,8 @@
 package com.esops.e2e
 
 import com.esops.entity.Order
+import com.esops.repository.ActiveBuyOrders
+import com.esops.repository.ActiveNonPerformanceSellOrders
 import com.esops.service.OrderService
 import com.esops.service.UserService
 import io.micronaut.http.HttpStatus
@@ -24,10 +26,22 @@ class OrderHistoryTest {
 
     private val commonUtil = CommonUtil()
 
+    @Inject
+    lateinit var buyOrders: ActiveBuyOrders
+
+    @Inject
+    lateinit var nonPerformanceSellOrders: ActiveNonPerformanceSellOrders
+
     @BeforeEach
-    fun setUp() {
+    fun `clear user`() {
         userService.clearUsers()
-        orderService.clearOrders()
+    }
+
+    @BeforeEach
+    fun `clear order`(){
+        orderService.clearOrderID()
+        buyOrders.clear()
+        nonPerformanceSellOrders.clear()
     }
 
     @Test

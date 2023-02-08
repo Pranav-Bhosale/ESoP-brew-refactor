@@ -176,10 +176,7 @@ class OrderService {
         return userService.getUser(username).getAllOrders()
     }
 
-    fun clearOrders() {
+    fun clearOrderID(){
         orderIDCounter = 0
-        while (true)
-            buyOrderQueue.getBestBuyOrder() ?: break
-        sellOrderQueue.clear()
     }
 }

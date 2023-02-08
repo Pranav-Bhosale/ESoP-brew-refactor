@@ -2,6 +2,8 @@ package com.esops.e2e
 
 import com.esops.entity.EsopType
 import com.esops.entity.OrderType
+import com.esops.repository.ActiveBuyOrders
+import com.esops.repository.ActiveNonPerformanceSellOrders
 import com.esops.service.OrderService
 import com.esops.service.UserService
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
@@ -23,14 +25,21 @@ class CreateOrderTest {
 
     private val commonUtil =  CommonUtil()
 
+    @Inject
+    lateinit var buyOrders: ActiveBuyOrders
+
+    @Inject
+    lateinit var nonPerformanceSellOrders: ActiveNonPerformanceSellOrders
+
     @BeforeEach
     fun `clear user`() {
         userService.clearUsers()
     }
-
     @BeforeEach
     fun `clear order`() {
-        orderService.clearOrders()
+        orderService.clearOrderID()
+        buyOrders.clear()
+        nonPerformanceSellOrders.clear()
     }
 
     @Test
