@@ -3,6 +3,7 @@ package com.esops.entity
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.math.BigInteger
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 enum class EsopType: Comparable<EsopType> {
@@ -31,10 +32,16 @@ data class User(
     var wallet: Wallet = Wallet(),
     val normal: Inventory = Inventory(EsopType.NON_PERFORMANCE),
     val performance: Inventory = Inventory(EsopType.PERFORMANCE),
-    var unvestedInventoryList: MutableList<UnvestedInventory> = mutableListOf<UnvestedInventory>()
-
+    var unvestedInventoryList: MutableList<UnvestedInventory> = mutableListOf(),
+    private val orders: ArrayList<Order> = ArrayList()
 ) {
+    fun getAllOrders(): List<Order> {
+        return orders
+    }
 
+    fun addNewOrder(order: Order){
+        orders.add(order)
+    }
     fun getFormatterUserData(vestingDuration: Int): FormattedUser {
         return FormattedUser(
             firstName,
