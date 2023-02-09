@@ -23,10 +23,10 @@ data class User(
     val userName: String,
     val email: String,
     val phoneNumber: String,
-    var wallet: Wallet = Wallet(),
-    val nonPerformanceInventory: Inventory = Inventory(EsopType.NON_PERFORMANCE),
-    val performanceInventory: Inventory = Inventory(EsopType.PERFORMANCE),
-    var unvestedInventoryList: MutableList<UnvestedInventory> = mutableListOf(),
+    private var wallet: Wallet = Wallet(),
+    private val nonPerformanceInventory: Inventory = Inventory(EsopType.NON_PERFORMANCE),
+    private val performanceInventory: Inventory = Inventory(EsopType.PERFORMANCE),
+    private var unvestedInventoryList: MutableList<UnvestedInventory> = mutableListOf(),
     private val orders: ArrayList<Order> = ArrayList()
 ) {
     fun getAllOrders(): List<Order> {
