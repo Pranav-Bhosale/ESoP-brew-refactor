@@ -1,11 +1,7 @@
 package com.esops.service
 
-import com.esops.configuration.PlatformFeesConfiguration
 import com.esops.entity.*
 import com.esops.model.AddOrderRequestBody
-import com.esops.repository.ActiveBuyOrders
-import com.esops.repository.ActiveNonPerformanceSellOrders
-import com.esops.repository.ActivePerformanceSellOrders
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import java.math.BigInteger
@@ -19,24 +15,11 @@ class OrderService {
     @Inject
     lateinit var platformService: PlatformService
 
-    @Inject
-    lateinit var platformFeesConfiguration: PlatformFeesConfiguration
-
-    @Inject
-    private lateinit var buyOrderQueue: ActiveBuyOrders
-
-    @Inject
-    private lateinit var activeNonPerformanceSellOrders: ActiveNonPerformanceSellOrders
-
-    @Inject
-    private lateinit var activePerformanceSellOrders: ActivePerformanceSellOrders
-
     fun placeOrder(username: String, addOrderRequestBody: AddOrderRequestBody): Order {
         val orderType = OrderType.valueOf(addOrderRequestBody.type!!)
         val esopType = EsopType.valueOf(addOrderRequestBody.esopType!!)
         val orderQuantity = BigInteger(addOrderRequestBody.quantity!!)
         val orderPrice = BigInteger(addOrderRequestBody.price!!)
-        val orderAmount = orderPrice * orderQuantity
 
         val user = this.userService.getUser(username)
         val newOrder = if (orderType == OrderType.BUY) placeBuyOrder(user, orderQuantity, orderPrice)
@@ -76,22 +59,22 @@ class OrderService {
 
 
     private fun updateRemainingQuantityInOrderDuringMatching(
-        sellOrder: Order,
-        minQuantity: BigInteger,
-        buyOrder: Order
+        buyOrder: Order,
+        sellOrder: Order
     ) {
-        sellOrder.remainingQuantity = sellOrder.remainingQuantity.subtract(minQuantity)
-        buyOrder.remainingQuantity = buyOrder.remainingQuantity.subtract(minQuantity)
+        val orderQuantity = getOrderQuantity(buyOrder, sellOrder)
+        sellOrder.remainingQuantity = sellOrder.remainingQuantity.subtract(orderQuantity)
+        buyOrder.remainingQuantity = buyOrder.remainingQuantity.subtract(orderQuantity)
     }
 
     private fun updateFilledFieldDuringMatching(
         sellOrder: Order,
-        buyOrder: Order,
-        minQuantity: BigInteger,
-        minPrice: BigInteger
+        buyOrder: Order
     ) {
-        sellOrder.filled.add(Filled(buyOrder.orderId, minQuantity, minPrice))
-        buyOrder.filled.add(Filled(sellOrder.orderId, minQuantity, minPrice))
+        val orderQuantity = getOrderQuantity(buyOrder, sellOrder)
+        val orderPrice = sellOrder.price
+        sellOrder.filled.add(Filled(buyOrder.orderId, orderQuantity, orderPrice))
+        buyOrder.filled.add(Filled(sellOrder.orderId, orderQuantity, orderPrice))
     }
 
 
@@ -101,6 +84,62 @@ class OrderService {
     }
 
     fun executeOrder(buyOrder: Order, sellOrder: Order) {
-        TODO("Not yet implemented")
+        if (buyOrder.price < sellOrder.price) return
+
+        updateWallets(buyOrder, sellOrder)
+        updateInventories(buyOrder, sellOrder)
+        updateFilledFieldDuringMatching(sellOrder, buyOrder)
+        updateRemainingQuantityInOrderDuringMatching(buyOrder, sellOrder)
+    }
+
+    private fun updateInventories(buyOrder: Order, sellOrder: Order) {
+        val buyer = buyOrder.createdBy
+        val seller = sellOrder.createdBy
+        val orderQuantity = getOrderQuantity(buyOrder, sellOrder)
+        buyer.addNonPerformanceEsops(orderQuantity)
+        if (sellOrder.esopType == EsopType.NON_PERFORMANCE)
+            seller.removeLockedNonPerformanceEsops(orderQuantity)
+        else
+            seller.removeLockedPerformanceEsops(orderQuantity)
+    }
+
+    private fun updateWallets(
+        buyOrder: Order,
+        sellOrder: Order
+    ) {
+        val buyerPrice = buyOrder.price
+        val sellerPrice = sellOrder.price
+        val buyer = buyOrder.createdBy
+        val seller = sellOrder.createdBy
+        val orderQuantity = getOrderQuantity(buyOrder, sellOrder)
+        val commissionFee = sellOrder.esopType.commissionFeePercentage
+
+        updateBuyerWallet(buyer, orderQuantity, buyerPrice, sellerPrice)
+        updateSellerWallet(seller, orderQuantity, sellerPrice, commissionFee)
+    }
+
+    private fun updateSellerWallet(
+        seller: User,
+        orderQuantity: BigInteger,
+        sellerPrice: BigInteger,
+        commissionFee: Int
+    ) {
+        seller.addMoneyToWallet(orderQuantity * sellerPrice * BigInteger.valueOf(100L - commissionFee))
+    }
+
+    private fun updateBuyerWallet(
+        buyer: User,
+        orderQuantity: BigInteger,
+        buyerPrice: BigInteger,
+        sellerPrice: BigInteger
+    ) {
+        buyer.removeLockedMoneyFromWallet(orderQuantity * buyerPrice)
+        val priceDifferenceAmount = orderQuantity * (buyerPrice - sellerPrice)
+        buyer.addMoneyToWallet(priceDifferenceAmount)
+    }
+
+    private fun getOrderQuantity(buyOrder: Order, sellOrder: Order): BigInteger {
+        if (buyOrder.quantity > sellOrder.quantity) return sellOrder.quantity
+        return buyOrder.quantity
     }
 }
