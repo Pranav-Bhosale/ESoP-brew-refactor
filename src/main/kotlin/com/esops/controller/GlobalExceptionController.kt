@@ -1,6 +1,6 @@
 package com.esops.controller
 
-import com.esops.exception.InventoryLimitExceededException
+import com.esops.exception.InventoryException
 import com.esops.exception.UserNotFoundException
 import com.esops.exception.UserNotUniqueException
 import com.esops.exception.WalletException
@@ -64,7 +64,7 @@ class GlobalExceptionController {
     }
 
     @Error(global = true)
-    fun inventoryLimitExceededError(error: InventoryLimitExceededException): HttpResponse<ErrorResponse> {
+    fun inventoryLimitExceededError(error: InventoryException): HttpResponse<ErrorResponse> {
         return HttpResponse.badRequest(ErrorResponse(error.errorList))
     }
 
