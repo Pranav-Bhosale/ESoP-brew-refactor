@@ -3,7 +3,7 @@ package com.esops.entity
 import com.esops.exception.WalletException
 import java.math.BigInteger
 
-class WalletNew(private var free: BigInteger = BigInteger.ZERO, private var locked: BigInteger = BigInteger.ZERO) {
+class Wallet(private var free: BigInteger = BigInteger.ZERO, private var locked: BigInteger = BigInteger.ZERO) {
     private val maxValue: BigInteger = BigInteger("100000000000000000000")
 
     fun add(amount: BigInteger) {
