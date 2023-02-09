@@ -2,17 +2,11 @@ package com.esops.entity
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.math.BigInteger
-import java.util.*
-import kotlin.collections.ArrayList
 
 
-enum class EsopType: Comparable<EsopType> {
-    NON_PERFORMANCE, PERFORMANCE
+enum class EsopType(val commissionFeePercentage: Int) {
+    NON_PERFORMANCE(2), PERFORMANCE(2)
 }
-
-data class Inventory(val type: EsopType, var free: BigInteger = BigInteger("0"), var locked: BigInteger = BigInteger("0"))
-data class Wallet(var free: BigInteger = BigInteger("0"), var locked: BigInteger = BigInteger("0"))
-
 
 data class UnvestedInventory(
     var addedAt: Long = System.currentTimeMillis(),
@@ -29,20 +23,55 @@ data class User(
     val userName: String,
     val email: String,
     val phoneNumber: String,
-    var wallet: Wallet = Wallet(),
-    val normal: Inventory = Inventory(EsopType.NON_PERFORMANCE),
-    val performance: Inventory = Inventory(EsopType.PERFORMANCE),
-    var unvestedInventoryList: MutableList<UnvestedInventory> = mutableListOf(),
+    private var wallet: Wallet = Wallet(),
+    private val nonPerformanceInventory: Inventory = Inventory(EsopType.NON_PERFORMANCE),
+    private val performanceInventory: Inventory = Inventory(EsopType.PERFORMANCE),
+    private var unvestedInventoryList: MutableList<UnvestedInventory> = mutableListOf(),
     private val orders: ArrayList<Order> = ArrayList()
 ) {
     fun getAllOrders(): List<Order> {
         return orders
     }
 
-    fun addNewOrder(order: Order){
-        orders.add(order)
+    fun addOrder(order: Order) = orders.add(order)
+
+    fun lockWalletMoney(amount: BigInteger) {
+        wallet.lockMoney(amount)
     }
-    fun getFormatterUserData(vestingDuration: Int): FormattedUser {
+
+    fun addMoneyToWallet(amount: BigInteger) {
+        wallet.add(amount)
+    }
+
+    fun removeLockedMoneyFromWallet(amount: BigInteger) {
+        wallet.removeLockedMoney(amount)
+    }
+
+    fun lockPerformanceEsops(quantity: BigInteger) {
+        performanceInventory.lockEsops(quantity)
+    }
+
+    fun lockNonPerformanceEsops(quantity: BigInteger) {
+        nonPerformanceInventory.lockEsops(quantity)
+    }
+
+    fun addPerformanceEsops(quantity: BigInteger) {
+        performanceInventory.add(quantity)
+    }
+
+    fun addNonPerformanceEsops(quantity: BigInteger) {
+        nonPerformanceInventory.add(quantity)
+    }
+
+    fun removeLockedNonPerformanceEsops(quantity: BigInteger) {
+        nonPerformanceInventory.removeLockedEsops(quantity)
+    }
+
+    fun removeLockedPerformanceEsops(quantity: BigInteger) {
+        performanceInventory.removeLockedEsops(quantity)
+    }
+
+    fun getFormatterUserData(): FormattedUser {
         return FormattedUser(
             firstName,
             lastName,
@@ -50,50 +79,8 @@ data class User(
             email,
             phoneNumber,
             wallet,
-            listOf(normal, performance),
-            getUnvestedInventoryListResponse(unvestedInventoryList, vestingDuration)
+            listOf(nonPerformanceInventory, performanceInventory),
         )
-    }
-
-    fun moveWalletMoneyFromFreeToLockedState(price: BigInteger) {
-        wallet.free = BigInteger(wallet.free.toString()).subtract(price)
-        wallet.locked = BigInteger(wallet.locked.toString()).add(price)
-    }
-
-    fun moveInventoryFromFreeToLockedState(esopType: EsopType, price: BigInteger) {
-        when (esopType) {
-            EsopType.NON_PERFORMANCE -> {
-                normal.free = BigInteger(normal.free.toString()).subtract(price)
-                normal.locked = BigInteger(normal.locked.toString()).add(price)
-            }
-            EsopType.PERFORMANCE -> {
-                performance.free = BigInteger(performance.free.toString()).subtract(price)
-                performance.locked = BigInteger(performance.locked.toString()).add(price)
-            }
-        }
-    }
-
-    private fun getUnvestedInventoryListResponse(unvestedInventoryList: MutableList<UnvestedInventory>, vestingDuration: Int): MutableList<UnvestedInventoryResponse> {
-        val unvestedInventoryResponseList = mutableListOf<UnvestedInventoryResponse>()
-        for( inventory in unvestedInventoryList) {
-            for(day in 0 until inventory.dividedInventory.size){
-                if(inventory.dividedInventory[day]!= BigInteger("0")) {
-                    val element = UnvestedInventoryResponse(
-                        addSecsToDate(Date(inventory.addedAt), (day + 1) * vestingDuration).toString(),
-                        inventory.dividedInventory[day]
-                    )
-                    unvestedInventoryResponseList.add(element)
-                }
-            }
-        }
-        return unvestedInventoryResponseList
-    }
-
-    private fun addSecsToDate(date: Date?, secs: Int): Date? {
-        val calendar = Calendar.getInstance()
-        calendar.time = date
-        calendar.add(Calendar.SECOND, secs)
-        return calendar.time
     }
 }
 
@@ -106,5 +93,4 @@ data class FormattedUser(
     val phoneNumber: String,
     val wallet: Wallet,
     val inventory: List<Inventory>,
-    val unvestedInventoryList: List<UnvestedInventoryResponse>
 )

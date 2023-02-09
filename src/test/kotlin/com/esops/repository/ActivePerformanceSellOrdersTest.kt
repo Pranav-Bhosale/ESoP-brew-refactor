@@ -3,6 +3,7 @@ package com.esops.repository
 import com.esops.entity.EsopType
 import com.esops.entity.Order
 import com.esops.entity.OrderType
+import com.esops.entity.User
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertNotEquals
@@ -11,7 +12,7 @@ import java.math.BigInteger
 
 class ActivePerformanceSellOrdersTest {
     private val activePerformanceSellOrders = ActivePerformanceSellOrders()
-
+    private val dummyUser = User("", "", "", "", "")
     @AfterEach
     fun tearDown() {
         activePerformanceSellOrders.clear()
@@ -20,11 +21,11 @@ class ActivePerformanceSellOrdersTest {
     @Test
     fun `should get null if none of the sell orders are viable`() {
         val highPriceOrder =
-            Order("jake", OrderType.SELL, BigInteger.ONE, BigInteger("10"), EsopType.PERFORMANCE)
+            Order(dummyUser, OrderType.SELL, BigInteger.ONE, BigInteger("10"), EsopType.PERFORMANCE)
         activePerformanceSellOrders.addOrder(highPriceOrder)
-        val lowPriceOrder = Order("jake", OrderType.SELL, BigInteger.ONE, BigInteger("5"), EsopType.PERFORMANCE)
+        val lowPriceOrder = Order(dummyUser, OrderType.SELL, BigInteger.ONE, BigInteger("5"), EsopType.PERFORMANCE)
         activePerformanceSellOrders.addOrder(lowPriceOrder)
-        val buyOrder = Order("jake", OrderType.BUY, BigInteger.ONE, BigInteger("2"), EsopType.NON_PERFORMANCE)
+        val buyOrder = Order(dummyUser, OrderType.BUY, BigInteger.ONE, BigInteger("2"), EsopType.NON_PERFORMANCE)
 
         val bestSellOrder = activePerformanceSellOrders.getBestSellOrder(buyOrder)
         Assertions.assertNull(bestSellOrder)
@@ -32,11 +33,11 @@ class ActivePerformanceSellOrdersTest {
 
     @Test
     fun `should get sell order that comes first even if later ones have better price`() {
-        val firstOrder = Order("jake", OrderType.SELL, BigInteger.ONE, BigInteger("10"), EsopType.PERFORMANCE)
+        val firstOrder = Order(dummyUser, OrderType.SELL, BigInteger.ONE, BigInteger("10"), EsopType.PERFORMANCE)
         activePerformanceSellOrders.addOrder(firstOrder)
-        val secondOrder = Order("jake", OrderType.SELL, BigInteger.ONE, BigInteger("5"), EsopType.PERFORMANCE)
+        val secondOrder = Order(dummyUser, OrderType.SELL, BigInteger.ONE, BigInteger("5"), EsopType.PERFORMANCE)
         activePerformanceSellOrders.addOrder(secondOrder)
-        val buyOrder = Order("jake", OrderType.BUY, BigInteger.ONE, BigInteger("10"), EsopType.NON_PERFORMANCE)
+        val buyOrder = Order(dummyUser, OrderType.BUY, BigInteger.ONE, BigInteger("10"), EsopType.NON_PERFORMANCE)
 
         val bestSellOrder = activePerformanceSellOrders.getBestSellOrder(buyOrder)
 
@@ -46,14 +47,14 @@ class ActivePerformanceSellOrdersTest {
 
     @Test
     fun `should be able to remove an order`() {
-        val firstOrder = Order("jake", OrderType.SELL, BigInteger.ONE, BigInteger("10"), EsopType.PERFORMANCE)
+        val firstOrder = Order(dummyUser, OrderType.SELL, BigInteger.ONE, BigInteger("10"), EsopType.PERFORMANCE)
         activePerformanceSellOrders.addOrder(firstOrder)
-        val secondOrder = Order("jake", OrderType.SELL, BigInteger.ONE, BigInteger("5"), EsopType.PERFORMANCE)
+        val secondOrder = Order(dummyUser, OrderType.SELL, BigInteger.ONE, BigInteger("5"), EsopType.PERFORMANCE)
         activePerformanceSellOrders.addOrder(secondOrder)
-        val thirdOrder = Order("jake", OrderType.SELL, BigInteger.ONE, BigInteger("2"), EsopType.PERFORMANCE)
+        val thirdOrder = Order(dummyUser, OrderType.SELL, BigInteger.ONE, BigInteger("2"), EsopType.PERFORMANCE)
         activePerformanceSellOrders.addOrder(thirdOrder)
         val buyOrderThatMatchesWithEverything =
-            Order("jake", OrderType.BUY, BigInteger.ONE, BigInteger.TEN, EsopType.NON_PERFORMANCE)
+            Order(dummyUser, OrderType.BUY, BigInteger.ONE, BigInteger.TEN, EsopType.NON_PERFORMANCE)
 
         val orderToBeDeleted = secondOrder
         activePerformanceSellOrders.removeOrderIfExists(orderToBeDeleted)

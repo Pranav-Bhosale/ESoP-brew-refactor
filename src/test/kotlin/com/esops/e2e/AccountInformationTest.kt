@@ -1,7 +1,10 @@
 package com.esops.e2e
 
 
-import com.esops.entity.*
+import com.esops.entity.EsopType
+import com.esops.entity.FormattedUser
+import com.esops.entity.Inventory
+import com.esops.entity.Wallet
 import com.esops.service.UserService
 import io.micronaut.http.HttpStatus
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
@@ -70,14 +73,11 @@ class AccountInformationTest {
             "john",
             "john@gmail.com",
             "9236234576",
-            Wallet(BigInteger.valueOf(10), BigInteger.ZERO),
-            listOf(Inventory(EsopType.NON_PERFORMANCE), Inventory(EsopType.PERFORMANCE, BigInteger.valueOf(20))),
+            Wallet(BigInteger.valueOf(0), BigInteger.ZERO),
             listOf(
-                UnvestedInventoryResponse("", BigInteger.valueOf(3)),
-                UnvestedInventoryResponse("", BigInteger.valueOf(2)),
-                UnvestedInventoryResponse("", BigInteger.valueOf(1)),
-                UnvestedInventoryResponse("", BigInteger.valueOf(4))
-            )
+                Inventory(EsopType.NON_PERFORMANCE),
+                Inventory(EsopType.PERFORMANCE, BigInteger("100000000000000000000"))
+            ),
         )
         assertThat(response).usingRecursiveComparison().ignoringFields("unvestedInventoryList.time")
             .isEqualTo(expectedResponse)

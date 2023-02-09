@@ -5,10 +5,10 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.math.BigInteger
 
-class WalletNewTest {
+class WalletTest {
     @Test
     fun `should be able to add money`() {
-        val wallet = WalletNew()
+        val wallet = Wallet()
         val amount = BigInteger.TEN
 
         assertDoesNotThrow { wallet.add(amount) }
@@ -16,7 +16,7 @@ class WalletNewTest {
 
     @Test
     fun `should not be able to add negative amount`() {
-        val wallet = WalletNew()
+        val wallet = Wallet()
         val amount = BigInteger("-10")
 
         val exception = assertThrows(WalletException::class.java) { wallet.add(amount) }
@@ -25,7 +25,7 @@ class WalletNewTest {
 
     @Test
     fun `should not be able to add more than the max limit`() {
-        val wallet = WalletNew()
+        val wallet = Wallet()
         val amount = BigInteger("100000000000000000001")
 
         val exception = assertThrows(WalletException::class.java) { wallet.add(amount) }
@@ -34,7 +34,7 @@ class WalletNewTest {
 
     @Test
     fun `should not be able to lock more money than wallet has free`() {
-        val wallet = WalletNew()
+        val wallet = Wallet()
         val amountToAdd = BigInteger.TWO
         val amountToLock = BigInteger.TEN
         wallet.add(amountToAdd)
@@ -45,7 +45,7 @@ class WalletNewTest {
 
     @Test
     fun `should not be able to remove more money than wallet has locked`() {
-        val wallet = WalletNew()
+        val wallet = Wallet()
         val amountToLock = BigInteger.TWO
         val amountToRemove = BigInteger.TEN
         wallet.add(amountToLock)
@@ -57,7 +57,7 @@ class WalletNewTest {
 
     @Test
     fun `should be able to remove money`() {
-        val wallet = WalletNew()
+        val wallet = Wallet()
         val amount = BigInteger.ONE
 
         wallet.add(amount)
