@@ -7,7 +7,7 @@ enum class OrderType {
 }
 
 data class Order(
-    val username: String,
+    val createdBy: User,
     val type: OrderType,
     val quantity: BigInteger,
     val price: BigInteger,

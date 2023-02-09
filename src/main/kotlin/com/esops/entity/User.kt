@@ -3,7 +3,6 @@ package com.esops.entity
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.math.BigInteger
 import java.util.*
-import kotlin.collections.ArrayList
 
 
 enum class EsopType: Comparable<EsopType> {
@@ -72,6 +71,7 @@ data class User(
     fun removeLockedPerformanceEsops(quantity: BigInteger) {
         performanceInventory.removeLockedEsops(quantity)
     }
+
     fun getFormatterUserData(vestingDuration: Int): FormattedUser {
         return FormattedUser(
             firstName,

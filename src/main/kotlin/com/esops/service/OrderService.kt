@@ -32,50 +32,48 @@ class OrderService {
     private lateinit var activePerformanceSellOrders: ActivePerformanceSellOrders
 
     fun placeOrder(username: String, addOrderRequestBody: AddOrderRequestBody): Order {
+        val orderType = OrderType.valueOf(addOrderRequestBody.type!!)
+        val esopType = EsopType.valueOf(addOrderRequestBody.esopType!!)
+        val orderQuantity = BigInteger(addOrderRequestBody.quantity!!)
+        val orderPrice = BigInteger(addOrderRequestBody.price!!)
+        val orderAmount = orderPrice * orderQuantity
+
         val user = this.userService.getUser(username)
-        return when (OrderType.valueOf(addOrderRequestBody.type!!)) {
-            OrderType.BUY -> placeBuyOrder(addOrderRequestBody, user)
-            OrderType.SELL -> placeSellOrder(addOrderRequestBody, user)
-        }
+        val newOrder = if (orderType == OrderType.BUY) placeBuyOrder(user, orderQuantity, orderPrice)
+        else placeSellOrder(user, orderQuantity, orderPrice, esopType)
+
+        user.addOrder(newOrder)
+        platformService.addOrderToQueue(newOrder)
+
+        return newOrder
     }
 
-    private fun placeBuyOrder(
-        addOrderRequestBody: AddOrderRequestBody,
-        user: User
+    private fun placeBuyOrder(user: User, orderQuantity: BigInteger, orderPrice: BigInteger): Order {
+        val orderAmount = orderPrice * orderQuantity
+        user.lockWalletMoney(orderAmount)
+        return Order(user, OrderType.BUY, orderQuantity, orderPrice, EsopType.NON_PERFORMANCE)
+    }
+
+    private fun placeSellOrder(
+        user: User,
+        orderQuantity: BigInteger,
+        orderPrice: BigInteger,
+        esopType: EsopType
     ): Order {
-        val username = user.userName
-        val price = BigInteger(addOrderRequestBody.price!!)
-        val quantity = BigInteger(addOrderRequestBody.quantity!!)
-        val orderValue = price.multiply(quantity)
-        val order = Order(
-            username,
-            OrderType.BUY,
-            quantity,
-            price,
-            EsopType.NON_PERFORMANCE,
-            remainingQuantity = quantity
-        )
-        userService.getUser(username).addNewOrder(order)
-        buyOrderQueue.addOrder(order)
-        user.moveWalletMoneyFromFreeToLockedState(orderValue)
-        executeBuyOrder(order)
-        return order
+        return if (esopType == EsopType.NON_PERFORMANCE) placeNonPerformanceSellOrder(user, orderQuantity, orderPrice)
+        else placePerformanceSellOrder(user, orderQuantity, orderPrice)
     }
 
-    private fun executeBuyOrder(buyOrder: Order) {
-        val buyOrderUser = userService.getUser(buyOrder.username)
-
-        while (buyOrder.remainingQuantity > BigInteger.ZERO) {
-            val bestPerformanceSellOrder = activePerformanceSellOrders.getBestSellOrder(buyOrder) ?: break
-            val sellOrderUser = userService.getUser(bestPerformanceSellOrder.username)
-            applyOrderMatchingAlgorithm(buyOrder, bestPerformanceSellOrder, buyOrderUser, sellOrderUser)
-        }
-        while (buyOrder.remainingQuantity > BigInteger.ZERO) {
-            val bestNonPerformanceSellOrder = activeNonPerformanceSellOrders.getBestSellOrder() ?: break
-            val sellOrderUser = userService.getUser(bestNonPerformanceSellOrder.username)
-            applyOrderMatchingAlgorithm(buyOrder, bestNonPerformanceSellOrder, buyOrderUser, sellOrderUser)
-        }
+    private fun placePerformanceSellOrder(user: User, orderQuantity: BigInteger, orderPrice: BigInteger): Order {
+        user.lockPerformanceEsops(orderQuantity)
+        return Order(user, OrderType.SELL, orderQuantity, orderPrice, EsopType.PERFORMANCE)
     }
+
+    private fun placeNonPerformanceSellOrder(user: User, orderQuantity: BigInteger, orderPrice: BigInteger): Order {
+        user.lockNonPerformanceEsops(orderQuantity)
+        return Order(user, OrderType.SELL, orderQuantity, orderPrice, EsopType.NON_PERFORMANCE)
+    }
+
 
     private fun updateRemainingQuantityInOrderDuringMatching(
         sellOrder: Order,
@@ -96,85 +94,6 @@ class OrderService {
         buyOrder.filled.add(Filled(sellOrder.orderId, minQuantity, minPrice))
     }
 
-    private fun placeSellOrder(
-        addOrderRequestBody: AddOrderRequestBody,
-        user: User
-    ): Order {
-        val username = user.userName
-        val esopType = EsopType.valueOf(addOrderRequestBody.esopType!!)
-        val price = BigInteger(addOrderRequestBody.price!!)
-        val quantity = BigInteger(addOrderRequestBody.quantity!!)
-        val order = Order(
-            username,
-            OrderType.SELL,
-            quantity,
-            price,
-            esopType,
-            remainingQuantity = quantity
-        )
-        userService.getUser(username).addNewOrder(order)
-        activeNonPerformanceSellOrders.addOrder(order)
-        user.moveInventoryFromFreeToLockedState(esopType, quantity)
-        executeSellOrder(order)
-        return order
-    }
-
-    private fun executeSellOrder(sellOrder: Order) {
-        val sellOrderUser = userService.getUser(sellOrder.username)
-
-        while (sellOrder.remainingQuantity > BigInteger.ZERO) {
-            val bestBuyOrder = buyOrderQueue.getBestBuyOrder() ?: return
-            val buyOrderUser = userService.getUser(bestBuyOrder.username)
-            applyOrderMatchingAlgorithm(bestBuyOrder, sellOrder, buyOrderUser, sellOrderUser)
-        }
-    }
-
-
-    private fun applyOrderMatchingAlgorithm(
-        buyOrder: Order,
-        sellOrder: Order,
-        buyOrderUser: User,
-        sellOrderUser: User
-    ) {
-        if (buyOrder.price >= sellOrder.price) {
-            val minPrice = sellOrder.price
-            val minQuantity =
-                if (buyOrder.remainingQuantity < sellOrder.remainingQuantity) buyOrder.remainingQuantity else sellOrder.remainingQuantity
-            if (minQuantity <= BigInteger.ZERO) return
-            updateFilledFieldDuringMatching(sellOrder, buyOrder, minQuantity, minPrice)
-            updateRemainingQuantityInOrderDuringMatching(sellOrder, minQuantity, buyOrder)
-            val buyOrderValue = buyOrder.price.multiply(minQuantity)
-            val sellOrderValue = sellOrder.price.multiply(minQuantity)
-            buyOrderUser.wallet.free = buyOrderUser.wallet.free.add(buyOrderValue.subtract(sellOrderValue))
-            buyOrderUser.wallet.locked = buyOrderUser.wallet.locked.subtract(buyOrderValue)
-
-            buyOrderUser.normal.free = buyOrderUser.normal.free.add(minQuantity)
-            when (sellOrder.esopType) {
-                EsopType.PERFORMANCE -> {
-                    sellOrderUser.performance.locked = sellOrderUser.performance.locked.subtract(minQuantity)
-                    val platformFees: BigInteger =
-                        sellOrderValue.multiply(
-                            BigInteger(
-                                (platformFeesConfiguration.performance * 100).toInt().toString()
-                            )
-                        )
-                            .divide(BigInteger("10000"))
-                    sellOrderUser.wallet.free = sellOrderUser.wallet.free.add(sellOrderValue).subtract(platformFees)
-                    platformService.addPlatformFees(platformFees)
-                }
-
-                EsopType.NON_PERFORMANCE -> {
-                    sellOrderUser.normal.locked =
-                        sellOrderUser.normal.locked.subtract(minQuantity)
-                    val platformFees: BigInteger =
-                        sellOrderValue.multiply(BigInteger((platformFeesConfiguration.normal * 100).toInt().toString()))
-                            .divide(BigInteger("10000"))
-                    sellOrderUser.wallet.free = sellOrderUser.wallet.free.add(sellOrderValue).subtract(platformFees)
-                    platformService.addPlatformFees(platformFees)
-                }
-            }
-        }
-    }
 
     fun orderHistory(username: String): List<Order> {
         userService.testUser(username)
