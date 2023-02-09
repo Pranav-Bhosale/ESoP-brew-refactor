@@ -7,7 +7,7 @@ import com.esops.entity.*
 import com.esops.exception.InventoryLimitExceededException
 import com.esops.exception.UserNotFoundException
 import com.esops.exception.UserNotUniqueException
-import com.esops.exception.WalletLimitExceededException
+import com.esops.exception.WalletException
 import com.esops.model.*
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -132,7 +132,7 @@ class UserService {
             )
                     ) > BigInteger(walletLimitConfiguration.max!!)
         ) {
-            throw WalletLimitExceededException(listOf("Total Wallet limit (${walletLimitConfiguration.max}) exceeded"))
+            throw WalletException(listOf("Total Wallet limit (${walletLimitConfiguration.max}) exceeded"))
         }
     }
 
