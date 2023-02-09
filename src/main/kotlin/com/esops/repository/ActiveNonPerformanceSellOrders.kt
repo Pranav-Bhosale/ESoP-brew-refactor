@@ -3,7 +3,6 @@ package com.esops.repository
 import com.esops.entity.Order
 import jakarta.inject.Singleton
 import java.util.*
-import kotlin.Comparator
 
 @Singleton
 class ActiveNonPerformanceSellOrders {
@@ -13,11 +12,22 @@ class ActiveNonPerformanceSellOrders {
     }
 
     fun getBestSellOrder(): Order? {
-        return sellOrderQueue.poll()
+        return sellOrderQueue.peek()
     }
 
-    fun clear(){
+    fun clear() {
         sellOrderQueue.clear()
+    }
+
+    fun removeOrderIfExists(order: Order) {
+        val sellOrders = sellOrderQueue.iterator()
+        while (sellOrders.hasNext()) {
+            val currentSellOrder = sellOrders.next()
+            if (order.orderId == currentSellOrder.orderId) {
+                sellOrders.remove()
+                return
+            }
+        }
     }
 }
 

@@ -3,18 +3,14 @@ package com.esops.repository
 import com.esops.entity.EsopType
 import com.esops.entity.Order
 import com.esops.entity.OrderType
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import jakarta.inject.Inject
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.math.BigInteger
 
-@MicronautTest
 class ActiveBuyOrdersTest {
-    @Inject
-    lateinit var activeBuyOrders: ActiveBuyOrders
+
+    private val activeBuyOrders = ActiveBuyOrders()
 
     @AfterEach
     fun tearDown() {
@@ -56,5 +52,23 @@ class ActiveBuyOrdersTest {
 
         assertNotNull(bestBuyOrder)
         assertEquals(firstOrder, bestBuyOrder)
+    }
+
+    @Test
+    fun `should be able to remove an order`() {
+        val firstOrder = Order("jake", OrderType.BUY, BigInteger.ONE, BigInteger("10"), EsopType.NON_PERFORMANCE)
+        activeBuyOrders.addOrder(firstOrder)
+        val secondOrder = Order("jake", OrderType.BUY, BigInteger.ONE, BigInteger("5"), EsopType.NON_PERFORMANCE)
+        activeBuyOrders.addOrder(secondOrder)
+        val thirdOrder = Order("jake", OrderType.BUY, BigInteger.ONE, BigInteger("2"), EsopType.NON_PERFORMANCE)
+        activeBuyOrders.addOrder(thirdOrder)
+
+        activeBuyOrders.removeOrderIfExists(firstOrder)
+
+        while (true) {
+            val currentOrder = activeBuyOrders.getBestBuyOrder() ?: break
+            assertNotEquals(currentOrder, firstOrder)
+            activeBuyOrders.removeOrderIfExists(currentOrder)
+        }
     }
 }

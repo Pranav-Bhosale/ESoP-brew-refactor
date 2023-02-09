@@ -12,18 +12,24 @@ class ActivePerformanceSellOrders {
     }
 
     fun getBestSellOrder(buyOrder: Order): Order? {
-        val sellOrderIterator = sellOrderQueue.iterator()
-        while (sellOrderIterator.hasNext()){
-            val currentSellOrder = sellOrderIterator.next()
-            if(currentSellOrder.price <= buyOrder.price){
-                sellOrderIterator.remove()
-                return currentSellOrder
-            }
+        for (sellOrder in sellOrderQueue) {
+            if (buyOrder.price >= sellOrder.price) return sellOrder
         }
         return null
     }
 
-    fun clear(){
+    fun clear() {
         sellOrderQueue.clear()
+    }
+
+    fun removeOrderIfExists(order: Order) {
+        val sellOrders = sellOrderQueue.iterator()
+        while (sellOrders.hasNext()) {
+            val currentSellOrder = sellOrders.next()
+            if (order.orderId == currentSellOrder.orderId) {
+                sellOrders.remove()
+                return
+            }
+        }
     }
 }
