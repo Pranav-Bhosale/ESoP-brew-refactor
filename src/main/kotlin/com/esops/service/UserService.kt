@@ -4,7 +4,7 @@ import com.esops.configuration.InventoryLimitConfiguration
 import com.esops.configuration.VestingConfiguration
 import com.esops.configuration.WalletLimitConfiguration
 import com.esops.entity.*
-import com.esops.exception.InventoryLimitExceededException
+import com.esops.exception.InventoryException
 import com.esops.exception.UserNotFoundException
 import com.esops.exception.UserNotUniqueException
 import com.esops.exception.WalletException
@@ -121,7 +121,7 @@ class UserService {
                 )
             ) > inventoryLimitConfiguration.max!!.toBigInteger()
         )
-            throw InventoryLimitExceededException(listOf("Inventory limit (${inventoryLimitConfiguration.max}) exceeded"))
+            throw InventoryException(listOf("Inventory limit (${inventoryLimitConfiguration.max}) exceeded"))
     }
 
     private fun canAddWalletMoney(username: String, addWalletMoneyRequestBody: AddWalletMoneyRequestBody) {
