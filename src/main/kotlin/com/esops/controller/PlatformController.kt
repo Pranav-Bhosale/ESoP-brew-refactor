@@ -2,15 +2,14 @@ package com.esops.controller
 
 import com.esops.configuration.InventoryLimitConfiguration
 import com.esops.configuration.PlatformFeesConfiguration
-import com.esops.configuration.VestingConfiguration
 import com.esops.configuration.WalletLimitConfiguration
 import com.esops.model.PlatformConfigurationResponse
 import com.esops.service.PlatformService
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
+import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
-import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Produces
 import io.micronaut.http.annotation.Status
 import jakarta.inject.Inject
@@ -28,9 +27,6 @@ class PlatformController {
     lateinit var walletLimitConfiguration: WalletLimitConfiguration
 
     @Inject
-    lateinit var vestingConfiguration: VestingConfiguration
-
-    @Inject
     lateinit var platformService: PlatformService
 
     @Get(uri = "/fees")
@@ -46,7 +42,6 @@ class PlatformController {
         return PlatformConfigurationResponse(
             inventoryLimitConfiguration,
             platformFeesConfiguration,
-            vestingConfiguration,
             walletLimitConfiguration
         )
     }
