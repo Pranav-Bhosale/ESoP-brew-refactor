@@ -3,18 +3,15 @@ package com.esops.repository
 import com.esops.entity.EsopType
 import com.esops.entity.Order
 import com.esops.entity.OrderType
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import jakarta.inject.Inject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.math.BigInteger
 
-@MicronautTest
 class ActiveBuyOrdersTest {
-    @Inject
-    lateinit var activeBuyOrders: ActiveBuyOrders
+
+    private val activeBuyOrders = ActiveBuyOrders()
 
     @AfterEach
     fun tearDown() {
