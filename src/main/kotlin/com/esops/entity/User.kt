@@ -2,11 +2,10 @@ package com.esops.entity
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.math.BigInteger
-import java.util.*
 
 
-enum class EsopType: Comparable<EsopType> {
-    NON_PERFORMANCE, PERFORMANCE
+enum class EsopType(val commissionFeePercentage: Int) {
+    NON_PERFORMANCE(2), PERFORMANCE(2)
 }
 
 data class UnvestedInventory(
