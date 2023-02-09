@@ -3,7 +3,7 @@ package com.esops.controller
 import com.esops.exception.InventoryLimitExceededException
 import com.esops.exception.UserNotFoundException
 import com.esops.exception.UserNotUniqueException
-import com.esops.exception.WalletLimitExceededException
+import com.esops.exception.WalletException
 import com.esops.model.ErrorResponse
 import com.fasterxml.jackson.core.JsonParseException
 import io.micronaut.core.bind.exceptions.UnsatisfiedArgumentException
@@ -59,7 +59,7 @@ class GlobalExceptionController {
     }
 
     @Error(global = true)
-    fun walletLimitExceededError(error: WalletLimitExceededException): HttpResponse<ErrorResponse> {
+    fun walletLimitExceededError(error: WalletException): HttpResponse<ErrorResponse> {
         return HttpResponse.badRequest(ErrorResponse(error.errorList))
     }
 
