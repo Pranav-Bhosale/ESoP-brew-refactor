@@ -72,7 +72,7 @@ data class User(
         performanceInventory.removeLockedEsops(quantity)
     }
 
-    fun getFormatterUserData(vestingDuration: Int): FormattedUser {
+    fun getFormatterUserData(): FormattedUser {
         return FormattedUser(
             firstName,
             lastName,
@@ -81,32 +81,7 @@ data class User(
             phoneNumber,
             wallet,
             listOf(nonPerformanceInventory, performanceInventory),
-            getUnvestedInventoryListResponse(unvestedInventoryList, vestingDuration)
         )
-    }
-
-
-    private fun getUnvestedInventoryListResponse(unvestedInventoryList: MutableList<UnvestedInventory>, vestingDuration: Int): MutableList<UnvestedInventoryResponse> {
-        val unvestedInventoryResponseList = mutableListOf<UnvestedInventoryResponse>()
-        for( inventory in unvestedInventoryList) {
-            for(day in 0 until inventory.dividedInventory.size){
-                if(inventory.dividedInventory[day]!= BigInteger("0")) {
-                    val element = UnvestedInventoryResponse(
-                        addSecsToDate(Date(inventory.addedAt), (day + 1) * vestingDuration).toString(),
-                        inventory.dividedInventory[day]
-                    )
-                    unvestedInventoryResponseList.add(element)
-                }
-            }
-        }
-        return unvestedInventoryResponseList
-    }
-
-    private fun addSecsToDate(date: Date?, secs: Int): Date? {
-        val calendar = Calendar.getInstance()
-        calendar.time = date
-        calendar.add(Calendar.SECOND, secs)
-        return calendar.time
     }
 }
 
@@ -119,5 +94,4 @@ data class FormattedUser(
     val phoneNumber: String,
     val wallet: Wallet,
     val inventory: List<Inventory>,
-    val unvestedInventoryList: List<UnvestedInventoryResponse>
 )

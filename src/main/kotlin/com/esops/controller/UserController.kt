@@ -43,12 +43,8 @@ class UserController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun order(@Body @Valid addOrderRequestBody: AddOrderRequestBody, userName: String): HttpResponse<Any> {
-        val error = this.userService.canAddOrder(userName, addOrderRequestBody)
-        return if (error.isNotEmpty()) {
-            HttpResponse.badRequest(ErrorResponse(error))
-        } else {
-            HttpResponse.ok(this.orderService.placeOrder(userName, addOrderRequestBody))
-        }
+        val newOrder = orderService.placeOrder(userName, addOrderRequestBody)
+        return HttpResponse.ok()
     }
 
     @Post(uri = "/register")
