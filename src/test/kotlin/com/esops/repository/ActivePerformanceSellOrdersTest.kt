@@ -5,6 +5,7 @@ import com.esops.entity.Order
 import com.esops.entity.OrderType
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
 import java.math.BigInteger
 
@@ -41,5 +42,26 @@ class ActivePerformanceSellOrdersTest {
 
         Assertions.assertNotNull(bestSellOrder)
         Assertions.assertEquals(firstOrder, bestSellOrder)
+    }
+
+    @Test
+    fun `should be able to remove an order`() {
+        val firstOrder = Order("jake", OrderType.SELL, BigInteger.ONE, BigInteger("10"), EsopType.PERFORMANCE)
+        activePerformanceSellOrders.addOrder(firstOrder)
+        val secondOrder = Order("jake", OrderType.SELL, BigInteger.ONE, BigInteger("5"), EsopType.PERFORMANCE)
+        activePerformanceSellOrders.addOrder(secondOrder)
+        val thirdOrder = Order("jake", OrderType.SELL, BigInteger.ONE, BigInteger("2"), EsopType.PERFORMANCE)
+        activePerformanceSellOrders.addOrder(thirdOrder)
+        val buyOrderThatMatchesWithEverything =
+            Order("jake", OrderType.BUY, BigInteger.ONE, BigInteger.TEN, EsopType.NON_PERFORMANCE)
+
+        val orderToBeDeleted = secondOrder
+        activePerformanceSellOrders.removeOrderIfExists(orderToBeDeleted)
+
+        while (true) {
+            val currentOrder = activePerformanceSellOrders.getBestSellOrder(buyOrderThatMatchesWithEverything) ?: break
+            assertNotEquals(currentOrder, orderToBeDeleted)
+            activePerformanceSellOrders.removeOrderIfExists(currentOrder)
+        }
     }
 }

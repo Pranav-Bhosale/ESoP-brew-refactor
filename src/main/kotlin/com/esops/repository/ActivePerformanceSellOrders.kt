@@ -18,7 +18,18 @@ class ActivePerformanceSellOrders {
         return null
     }
 
-    fun clear(){
+    fun clear() {
         sellOrderQueue.clear()
+    }
+
+    fun removeOrderIfExists(order: Order) {
+        val sellOrders = sellOrderQueue.iterator()
+        while (sellOrders.hasNext()) {
+            val currentSellOrder = sellOrders.next()
+            if (order.orderId == currentSellOrder.orderId) {
+                sellOrders.remove()
+                return
+            }
+        }
     }
 }
