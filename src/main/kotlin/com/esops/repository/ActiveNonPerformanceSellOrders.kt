@@ -3,7 +3,6 @@ package com.esops.repository
 import com.esops.entity.Order
 import jakarta.inject.Singleton
 import java.util.*
-import kotlin.Comparator
 
 @Singleton
 class ActiveNonPerformanceSellOrders {
@@ -13,7 +12,7 @@ class ActiveNonPerformanceSellOrders {
     }
 
     fun getBestSellOrder(): Order? {
-        return sellOrderQueue.poll()
+        return sellOrderQueue.peek()
     }
 
     fun clear(){

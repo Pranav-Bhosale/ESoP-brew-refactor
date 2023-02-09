@@ -3,7 +3,6 @@ package com.esops.repository
 import com.esops.entity.Order
 import jakarta.inject.Singleton
 import java.util.*
-import kotlin.Comparator
 
 @Singleton
 class ActiveBuyOrders {
@@ -13,7 +12,7 @@ class ActiveBuyOrders {
     }
 
     fun getBestBuyOrder(): Order? {
-        return buyOrderQueue.poll()
+        return buyOrderQueue.peek()
     }
 
     fun clear(){
