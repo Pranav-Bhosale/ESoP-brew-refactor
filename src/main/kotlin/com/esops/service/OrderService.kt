@@ -88,8 +88,17 @@ class OrderService {
 
         updateWallets(buyOrder, sellOrder)
         updateInventories(buyOrder, sellOrder)
+        updatePlatformFee(buyOrder, sellOrder)
         updateFilledFieldDuringMatching(sellOrder, buyOrder)
         updateRemainingQuantityInOrderDuringMatching(buyOrder, sellOrder)
+    }
+
+    private fun updatePlatformFee(buyOrder: Order, sellOrder: Order) {
+        val orderQuantity = getOrderQuantity(buyOrder, sellOrder)
+        val commissionFeePercentage = sellOrder.esopType.commissionFeePercentage
+        val commissionFee =
+            (orderQuantity * sellOrder.price * commissionFeePercentage).divide(BigInteger("100"))
+        platformService.addPlatformFees(commissionFee)
     }
 
     private fun updateInventories(buyOrder: Order, sellOrder: Order) {
@@ -112,19 +121,21 @@ class OrderService {
         val buyer = buyOrder.createdBy
         val seller = sellOrder.createdBy
         val orderQuantity = getOrderQuantity(buyOrder, sellOrder)
-        val commissionFee = sellOrder.esopType.commissionFeePercentage
+        val commissionFeePercentage = sellOrder.esopType.commissionFeePercentage
 
         updateBuyerWallet(buyer, orderQuantity, buyerPrice, sellerPrice)
-        updateSellerWallet(seller, orderQuantity, sellerPrice, commissionFee)
+        updateSellerWallet(seller, orderQuantity, sellerPrice, commissionFeePercentage)
     }
 
     private fun updateSellerWallet(
         seller: User,
         orderQuantity: BigInteger,
         sellerPrice: BigInteger,
-        commissionFee: Int
+        commissionFeePercentage: BigInteger
     ) {
-        seller.addMoneyToWallet(orderQuantity * sellerPrice * BigInteger.valueOf(100L - commissionFee))
+        seller.addMoneyToWallet(
+            (orderQuantity * sellerPrice * (BigInteger("100") - commissionFeePercentage).divide(BigInteger("100")))
+        )
     }
 
     private fun updateBuyerWallet(

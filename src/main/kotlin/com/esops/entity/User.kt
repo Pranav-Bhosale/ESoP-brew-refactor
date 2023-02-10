@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import java.math.BigInteger
 
 
-enum class EsopType(val commissionFeePercentage: Int) {
-    NON_PERFORMANCE(2), PERFORMANCE(2)
+enum class EsopType(val commissionFeePercentage: BigInteger) {
+    NON_PERFORMANCE(BigInteger.TWO), PERFORMANCE(BigInteger.TWO)
 }
 
 data class UnvestedInventory(
@@ -13,10 +13,6 @@ data class UnvestedInventory(
     var dividedInventory: MutableList<BigInteger>
 )
 
-data class UnvestedInventoryResponse(
-    var time: String,
-    var amount: BigInteger = BigInteger("0")
-)
 data class User(
     val firstName: String,
     val lastName: String,

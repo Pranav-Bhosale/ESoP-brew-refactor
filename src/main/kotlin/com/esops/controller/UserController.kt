@@ -4,6 +4,7 @@ import com.esops.entity.FormattedUser
 import com.esops.entity.Order
 import com.esops.model.*
 import com.esops.service.OrderService
+import com.esops.service.PlatformService
 import com.esops.service.UserService
 import io.micronaut.http.*
 import io.micronaut.http.annotation.*
@@ -20,6 +21,9 @@ class UserController {
 
     @Inject
     private lateinit var orderService: OrderService
+
+    @Inject
+    private lateinit var platformService: PlatformService
 
     @Post(uri = "/{userName}/wallet")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -44,6 +48,7 @@ class UserController {
     @Produces(MediaType.APPLICATION_JSON)
     fun order(@Body @Valid addOrderRequestBody: AddOrderRequestBody, userName: String): HttpResponse<Any> {
         val newOrder = orderService.placeOrder(userName, addOrderRequestBody)
+        platformService.executeOrders()
         return HttpResponse.ok()
     }
 
