@@ -15,11 +15,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'corretto'
       - name: Test with Gradle
         env:
           PORT: 8080
@@ -32,11 +27,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'corretto'
       - name: Build with Gradle
         env:
           PORT: 8080
@@ -58,8 +48,12 @@ jobs:
         with:
           name: built-jar
       - name: Create SSH key file
-        run: echo ${{ secrets.EC2_ACCESS_KEY }} > key.pem
+        env:
+          EC2_ACCESS_KEY: ${{ secrets.EC2_ACCESS_KEY }}
+          USER: ${{ secrets.USER }}
+          EC2_ADDRESS: ${{ secrets.EC2_ADDRESS }}
+        run: echo $EC2_ACCESS_KEY  > key.pem
       - name: Copy JAR to instance
-        run: scp -o StrictHostKeyChecking=no -i key.pem esop-trading-0.1-all.jar ${{ secrets.USER }}@${{ secrets.EC2_ADDRESS }}:~/
+        run: scp -o StrictHostKeyChecking=no -i key.pem esop-trading-0.1-all.jar $USER@$EC2_ADDRESS:~/
       - name: Run JAR
-        run: scp -o StrictHostKeyChecking=no -i key.pem ${{ secrets.USER }}@${{ secrets.EC2_ADDRESS }} 'sudo java -jar esop-trading-0.1-all.jar'
+        run: scp -o StrictHostKeyChecking=no -i key.pem $USER@$EC2_ADDRESS 'sudo java -jar esop-trading-0.1-all.jar'
