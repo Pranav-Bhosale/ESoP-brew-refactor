@@ -60,7 +60,9 @@ jobs:
       - name: Create SSH key file
         env:
           EC2_ACCESS_KEY: ${{ secrets.EC2_ACCESS_KEY }}
-        run: echo $EC2_ACCESS_KEY  > key.pem & chmod 400 key.pem
+        run: echo $EC2_ACCESS_KEY  > key.pem && chmod 400 key.pem
+      - name: Install Java
+        run: ssh -o StrictHostKeyChecking=no -i key.pem $USER@$EC2_ADDRESS 'sudo yum install java-corretto-17'
       - name: Copy JAR to instance
         env:
           USER: ${{ secrets.USER }}
