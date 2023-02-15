@@ -1,0 +1,27 @@
+name: Java CI with Gradle
+on:
+  push:
+    branches: [ "cicd" ]  pull_request:
+                            branches: [ "cicd" ]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+      steps:
+        - uses:
+            actions/checkout@v3    - name:
+              Set up Java      uses:
+                actions/setup-java@v3      with:
+                  java-version: '17'        distribution: 'corretto'    - name:
+                                                                            Test with Gradle      run:
+                                                                              ./gradlew test              build:
+                                                                                needs:
+                                                                                  test    runs-on: ubuntu-latest
+      steps:
+        - uses:
+            actions/checkout@v3    - name:
+              Set up Java      uses:
+                actions/setup-java@v3      with:
+                  java-version: '17'        distribution: 'corretto'    - name:
+                                                                            Build with Gradle      run: ./gradlew -x check build
