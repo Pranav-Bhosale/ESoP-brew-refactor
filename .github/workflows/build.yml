@@ -21,7 +21,9 @@ jobs:
           java-version: '17'
           distribution: 'corretto'
       - name: Test with Gradle
-        run: sudo ./gradlew test
+        env:
+          PORT: 8080
+        run: ./gradlew test
 
 
   build:
@@ -36,7 +38,9 @@ jobs:
           java-version: '17'
           distribution: 'corretto'
       - name: Build with Gradle
-        run: sudo ./gradlew -x check build
+        env:
+          PORT: 8080
+        run: ./gradlew -x check build
       - name: Upload JAR
         uses: actions/upload-artifact@v3
         with:

@@ -1,6 +1,6 @@
 micronaut:
   server:
-    port: 80
+    port: ${PORT}
   application:
     name: esopTrading
 netty:
