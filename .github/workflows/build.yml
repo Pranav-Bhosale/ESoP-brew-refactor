@@ -37,3 +37,30 @@ jobs:
           distribution: 'corretto'
       - name: Build with Gradle
         run: ./gradlew -x check build
+      - name: Upload JAR
+        uses: actions/upload-artifact@v3
+        with:
+          name: built-jar
+          path: build/libs/esop-trading-0.1-all.jar
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+      - name: Download JAR
+        uses: actions/download-artifact@v3
+        with:
+          name: built-jar
+      - name: Add SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_ACCESS_KEY }}
+        run: ssh-add <(echo "$SSH_PRIVATE_KEY")
+      - name: Copy JAR
+        run: ls
