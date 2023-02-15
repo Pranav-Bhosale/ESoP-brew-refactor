@@ -60,18 +60,14 @@ jobs:
       - name: Create SSH key file
         env:
           EC2_ACCESS_KEY: ${{ secrets.EC2_ACCESS_KEY }}
-          USER: ${{ secrets.USER }}
-          EC2_ADDRESS: ${{ secrets.EC2_ADDRESS }}
-        run: echo $EC2_ACCESS_KEY  > key.pem
+        run: echo $EC2_ACCESS_KEY  > key.pem & chmod 400 key.pem
       - name: Copy JAR to instance
         env:
-          EC2_ACCESS_KEY: ${{ secrets.EC2_ACCESS_KEY }}
           USER: ${{ secrets.USER }}
           EC2_ADDRESS: ${{ secrets.EC2_ADDRESS }}
         run: scp -o StrictHostKeyChecking=no -i key.pem esop-trading-0.1-all.jar $USER@$EC2_ADDRESS:~/
       - name: Run JAR
         env:
-          EC2_ACCESS_KEY: ${{ secrets.EC2_ACCESS_KEY }}
           USER: ${{ secrets.USER }}
           EC2_ADDRESS: ${{ secrets.EC2_ADDRESS }}
         run: ssh -o StrictHostKeyChecking=no -i key.pem $USER@$EC2_ADDRESS 'sudo java -jar esop-trading-0.1-all.jar'
