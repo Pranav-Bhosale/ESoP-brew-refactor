@@ -1,10 +1,10 @@
-name: Java CI with Gradle
+name: Pipeline
 
 on:
   push:
-    branches: [ "cicd" ]
+    branches: [ "CI/CD" ]
   pull_request:
-    branches: [ "cicd" ]
+    branches: [ "CI/CD" ]
 
 permissions:
   contents: read
